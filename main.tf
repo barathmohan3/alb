@@ -162,6 +162,10 @@ resource "aws_lb_target_group" "tg_a" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+  health_check {
+    path = "/"
+    matcher = "200"
+  }
 }
 
 resource "aws_lb_target_group" "tg_b" {
@@ -169,6 +173,10 @@ resource "aws_lb_target_group" "tg_b" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+  health_check {
+    path = "/"
+    matcher = "200"
+  }
 }
 
 resource "aws_lb_target_group" "tg_c" {
@@ -176,6 +184,10 @@ resource "aws_lb_target_group" "tg_c" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+health_check {
+    path = "/"
+    matcher = "200"
+  }
 }
 
 resource "aws_lb_target_group_attachment" "a" {
