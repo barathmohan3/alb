@@ -32,12 +32,9 @@ jobs:
      
     - name: Terraform Init
       run: terraform init
-      working-directory: alb
 
     - name: Terraform Plan
       run: terraform plan
-      working-directory: alb
 
     - name: Terraform Apply
       run:  Terraform apply -auto-approve
-      working-directory: alb
