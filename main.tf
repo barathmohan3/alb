@@ -241,6 +241,6 @@ resource "aws_lb_listener_rule" "register" {
 
 # variables.tf
 variable "ami" {
-  default = "ami-06031e2c49c278c8f" # Ubuntu (example)
+  default = "ami-0032f6d27ca7a28e6" # Ubuntu (example)
 }
 
