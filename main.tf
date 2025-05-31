@@ -128,11 +128,18 @@ resource "aws_instance" "instance_b" {
 
   user_data = <<-EOF
               #!/bin/bash
-               yum install -y nginx
+              yum install -y nginx
               systemctl enable nginx
               systemctl start nginx
-              echo '<h1>Images!</h1><br><h2>(Instance B)</br></h2>' > /usr/share/nginx/html/index.html
+
+              # Root index.html
+              echo '<h1>Images!</h1><br><h2>(Instance B)</h2>' > /usr/share/nginx/html/index.html
+
+              # /images index.html
+              mkdir -p /usr/share/nginx/html/images
+              echo '<h1>Images!</h1><br><h2>(Instance B)</h2>' > /usr/share/nginx/html/images/index.html
               EOF
+
 }
 
 resource "aws_instance" "instance_c" {
@@ -150,6 +157,10 @@ resource "aws_instance" "instance_c" {
               systemctl enable nginx
               systemctl start nginx
               echo '<h1>Register!</h1><br><h2>(Instance C)</br></h2>' > /usr/share/nginx/html/index.html
+
+               # /images index.html
+              mkdir -p /usr/share/nginx/html/register
+              echo '<h1>Register!</h1><br><h2>(Instance C)</h2>' > /usr/share/nginx/html/register/index.html
               EOF
 }
 
