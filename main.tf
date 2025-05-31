@@ -1,22 +1,20 @@
-# main.tf
-
 provider "aws" {
   region = "us-east-1"
 }
 
 terraform {
   backend "s3" {
-    bucket         = "my-oidc-bucket-15328069840"
-    key            = "alb-path-routing/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
+    bucket = "my-oidc-bucket-15328069840"
+    key    = "alb-path-routing/terraform.tfstate"
+    region = "us-east-1"
+    encrypt = true
   }
 }
 
 # VPC
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-  enable_dns_support = true
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
   enable_dns_hostnames = true
   tags = { Name = "main-vpc" }
 }
@@ -27,23 +25,26 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_subnet" "subnet_a" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.1.0/24"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
+  map_public_ip_on_launch = true
   tags = { Name = "subnet-a" }
 }
 
 resource "aws_subnet" "subnet_b" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.2.0/24"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
+  map_public_ip_on_launch = true
   tags = { Name = "subnet-b" }
 }
 
 resource "aws_subnet" "subnet_c" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.3.0/24"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.3.0/24"
   availability_zone = "us-east-1c"
+  map_public_ip_on_launch = true
   tags = { Name = "subnet-c" }
 }
 
@@ -99,53 +100,56 @@ resource "aws_security_group" "allow_http_ssh" {
 }
 
 resource "aws_instance" "instance_a" {
-  ami           = var.ami
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet_a.id
-  vpc_security_group_ids = [aws_security_group.allow_http_ssh.id]
+  ami                         = var.ami
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.subnet_a.id
+  vpc_security_group_ids      = [aws_security_group.allow_http_ssh.id]
+  associate_public_ip_address = true
 
   tags = { Name = "Instance A" }
 
-  user_data = <<-EOF
+  user_data =<<-EOF
               #!/bin/bash
-              sudo apt-get update
-              sudo apt-get install -y nginx
-              sudo systemctl start nginx
-              echo '<h1>Home page!</h1>' > /var/www/html/index.html
+              yum install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
+              echo '<h1>Home page!</h1><br><h2>(Instance A)</br></h2>' > /usr/share/nginx/html/index.html
               EOF
 }
 
 resource "aws_instance" "instance_b" {
-  ami           = var.ami
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet_b.id
-  vpc_security_group_ids = [aws_security_group.allow_http_ssh.id]
+  ami                         = var.ami
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.subnet_b.id
+  vpc_security_group_ids      = [aws_security_group.allow_http_ssh.id]
+  associate_public_ip_address = true
 
   tags = { Name = "Instance B" }
 
   user_data = <<-EOF
               #!/bin/bash
-              sudo apt-get update
-              sudo apt-get install -y nginx
-              sudo systemctl start nginx
-              echo '<h1>Images!</h1>' > /var/www/html/index.html
+               yum install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
+              echo '<h1>Images!</h1><br><h2>(Instance B)</br></h2>' > /usr/share/nginx/html/index.html
               EOF
 }
 
 resource "aws_instance" "instance_c" {
-  ami           = var.ami
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.subnet_c.id
-  vpc_security_group_ids = [aws_security_group.allow_http_ssh.id]
+  ami                         = var.ami
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.subnet_c.id
+  vpc_security_group_ids      = [aws_security_group.allow_http_ssh.id]
+  associate_public_ip_address = true
 
   tags = { Name = "Instance C" }
 
   user_data = <<-EOF
               #!/bin/bash
-              sudo apt-get update
-              sudo apt-get install -y nginx
-              sudo systemctl start nginx
-              echo '<h1>Register!</h1>' > /var/www/html/index.html
+               yum install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
+              echo '<h1>Register!</h1><br><h2>(Instance C)</br></h2>' > /usr/share/nginx/html/index.html
               EOF
 }
 
@@ -154,7 +158,11 @@ resource "aws_lb" "app_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.allow_http_ssh.id]
-  subnets            = [aws_subnet.subnet_a.id, aws_subnet.subnet_b.id, aws_subnet.subnet_c.id]
+  subnets            = [
+    aws_subnet.subnet_a.id,
+    aws_subnet.subnet_b.id,
+    aws_subnet.subnet_c.id
+  ]
 }
 
 resource "aws_lb_target_group" "tg_a" {
@@ -162,8 +170,9 @@ resource "aws_lb_target_group" "tg_a" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+
   health_check {
-    path = "/"
+    path    = "/"
     matcher = "200"
   }
 }
@@ -173,8 +182,9 @@ resource "aws_lb_target_group" "tg_b" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+
   health_check {
-    path = "/"
+    path    = "/"
     matcher = "200"
   }
 }
@@ -184,8 +194,9 @@ resource "aws_lb_target_group" "tg_c" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
-health_check {
-    path = "/"
+
+  health_check {
+    path    = "/"
     matcher = "200"
   }
 }
@@ -253,6 +264,5 @@ resource "aws_lb_listener_rule" "register" {
 
 # variables.tf
 variable "ami" {
-  default = "ami-0032f6d27ca7a28e6" # Ubuntu (example)
+  default = "ami-0032f6d27ca7a28e6"
 }
-
