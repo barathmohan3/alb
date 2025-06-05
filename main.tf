@@ -100,7 +100,7 @@ resource "aws_security_group" "allow_http_ssh" {
 }
 
 resource "aws_instance" "instance_a" {
-  ami                         = ami-03400c3b73b5086e9
+  ami                         = var.ami
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.subnet_a.id
   vpc_security_group_ids      = [aws_security_group.allow_http_ssh.id]
